@@ -58,6 +58,9 @@
     margin-bottom: 20px;
 
 }
+.form-group {
+  width: 100%;
+}
 
 .input {
   font-size: 120%;
@@ -65,20 +68,8 @@
   width: 100%;
   border-width: 0.8px;
   border-radius: 8px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
 }
-.other-formfields {
-  font-size: 120%;
-  padding: 10px;
-  width: 100%;
-  border-width: 0.8px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
+
 form {
   max-width: 450px;
   width: 100%;

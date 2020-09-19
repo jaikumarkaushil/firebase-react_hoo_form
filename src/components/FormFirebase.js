@@ -1,74 +1,130 @@
 import React from 'react'
 import { useForm } from 'react-hook-form';
+import { FormGroup } from 'reactstrap';
+import firebase from '../firebase/firebase';
+
 
 function FormFirebase () {
     const { register, handleSubmit, errors } = useForm();
     const onSubmit = (data) => {
-        console.log(data);
+        // post operation of form data
+        createAndUpdateForm(data.firstname, data.lastname, data.gender, data.email, data.phonenum, data.skills, data.description);
     };
+
+    const createAndUpdateForm =(firstname, lastname, gender, email, phonenum, skills, description ) => {
+        var formData = {
+            firstname,
+            lastname,
+            gender,
+            email,
+            phonenum,
+            skills,
+            description
+        };
+        
+        var newFormDataKey = firebase.database().ref().child('posts').push().key;
+
+        var updates = {};
+        updates['/forms/' + newFormDataKey] = formData;
+
+        return firebase.database().ref().update(updates, function(error) {
+            if (error) {
+                console.log("The post of Form Data failed!");
+            } else {
+                console.log("Data Saved Successfully");
+            }
+        });
+    }
 
     return (
         <div className="container-position">
             <h1 className="mt-2 mb-2">Let's get started</h1>
             <h5 className="my-4 light-text-color"> Start with the your form! </h5>
             <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column align-items-center justify-content-center text-white" >
-                <input name="firstname" type="text" className="input mb-3" ref={register({minLength: 3, maxLength: 15})} placeholder="First Name" />
-                {errors.firstname?.type === "maxLength" && "Firstname exceed maxLength 15"}
-                {errors.firstname?.type === "minLength" && "Firstname must have 2 letters"}
+                <FormGroup>
+                    <input name="firstname" type="text" className="input mb-3" ref={register({minLength: 3, maxLength: 15})} placeholder="First Name" />
+                    {errors.firstname?.type === "maxLength" && "Firstname exceed maxLength 15"}
+                    {errors.firstname?.type === "minLength" && "Firstname must have 2 letters"}
 
-                <input name="lastname" 
-                    type="text" 
-                    className="input mb-3" 
-                    placeholder="Last Name"
-                    ref={register({ 
-                            required: true, 
-                            minLength: 3, 
-                            maxLength: 15 
-                            })} 
-                />
-                {errors.lastname?.type === "required" && "Lastname is required"}
-                {errors.lastname?.type === "maxLength" && "Lastname exceed maxLength 15"}
-                {errors.lastname?.type === "minLength" && "Lastname must have 2 letters"}
-                
-                <div className="other-formfields mb-3" >
-                    <label>Gender</label>
-                    <label><input name="gender" type="radio" value="Male" /> Male </label>
-                    <label><input name="gender" type="radio" value="Female" /> Female</label>
-                </div>
+                    <input name="lastname" 
+                        type="text" 
+                        className="input mb-3" 
+                        placeholder="Last Name"
+                        ref={register({ 
+                                required: true, 
+                                minLength: 3, 
+                                maxLength: 15 
+                                })} 
+                    />
+                    {errors.lastname?.type === "required" && "Lastname is required"}
+                    {errors.lastname?.type === "maxLength" && "Lastname exceed maxLength 15"}
+                    {errors.lastname?.type === "minLength" && "Lastname must have 2 letters"}
+                </FormGroup>
+
+                <FormGroup className="input mb-3" >
+                    <label className="mr-5">Gender</label>
+                    <div className="form-check form-check-inline">
+                        <input
+                            className="form-check-input"
+                            type="radio"
+                            name="gender"
+                            value="Male"
+                            id="inlineRadio1"
+                            ref={register}
+                        />
+                        <label className="form-check-label" htmlFor="inlineRadio1">
+                            Male
+                        </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                        <input
+                            className="form-check-input"
+                            type="radio"
+                            name="gender"
+                            value="Female"
+                            id="inlineRadio2"
+                            ref={register}
+                        />
+                        <label className="form-check-label" htmlFor="inlineRadio2">
+                            Female
+                        </label>
+                    </div>
+                </FormGroup>
                     
-                <input placeholder="Email"
-                    name="email"
-                    type="text"
-                    className="input mb-3"
-                    ref={register({
-                    required: "Required",
-                    pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        // value: /^\w+([-]?\w+)*@\w+([-]?\w+)*(\w{2,3})+$/,
-                        message: "invalid email address"
-                    }
-                    })}
-                />
-                {errors.email && errors.email.message}
-        
-                <input placeholder="Phone No."
-                    name="phonenum"
-                    className="input"
-                    type="tel"
-                    ref={register({
-                    required: "Required",
-                    pattern: {
-                        // value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        value: /^[0-9]*$/,
-                        message: "Invalid!"
-                    },
-                    maxLength: 11, 
-                    minLength: 8
-                    })}
-                />
-                {errors.phonenum && errors.phonenum.message}
-
-                <label className="col-12 other-formfields">Skills</label>
+                <FormGroup>
+                    <input placeholder="Email"
+                        name="email"
+                        type="text"
+                        className="input mb-3"
+                        ref={register({
+                        required: "Required",
+                        pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            // value: /^\w+([-]?\w+)*@\w+([-]?\w+)*(\w{2,3})+$/,
+                            message: "invalid email address"
+                        }
+                        })}
+                    />
+                    {errors.email && errors.email.message}
+                </FormGroup>
+                <FormGroup>
+                    <input placeholder="Phone No."
+                        name="phonenum"
+                        className="input mb-3"
+                        type="tel"
+                        ref={register({
+                        required: "Required",
+                        pattern: {
+                            // value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            value: /^[0-9]+$/,
+                            message: "Invalid! Only Number can be entered"
+                        },
+                        maxLength: 11, 
+                    
+                        })}
+                    />
+                    {errors.phonenum && errors.phonenum.message}
+                </FormGroup>
     
                 <select name="skills" ref={register({ required: true })} className="input mb-3">
                     <option>Skills</option>
@@ -77,7 +133,10 @@ function FormFirebase () {
                     <option value="Backend">Backend</option>
                     <option value="CSS">CSS</option>
                 </select>
-                <textarea name="description" className="input" rows="4" />
+                <FormGroup>
+                    <textarea name="description" className="input form-control" rows="4" ref={register} placeholder="Write your description here!"/>
+                </FormGroup>
+                
                 <button className="button mb-0">Submit</button>
             </form>
         </div>
