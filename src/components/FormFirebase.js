@@ -1,40 +1,51 @@
-import React from 'react'
+import React, {useState} from 'react'
 import { useForm } from 'react-hook-form';
 import { FormGroup } from 'reactstrap';
 import firebase from '../firebase/firebase';
+import { isEqual } from 'lodash';
 
 
 function FormFirebase () {
-    const { register, handleSubmit, errors } = useForm();
+    const [submitted, setSubmitted] = useState();
+    const { register, handleSubmit, errors, watch, formState } = useForm({
+        mode: 'onChange'
+    });
     const onSubmit = (data) => {
         // post operation of form data
-        createAndUpdateForm(data.firstname, data.lastname, data.gender, data.email, data.phonenum, data.skills, data.description);
+        var previousSubmit = submitted;
+        setSubmitted(data);
+        // user with same firstname and lastname can edit his form field, changes in spelling or spacing may not the data for same
+        var username = data.firstname.toUpperCase() + ' ' + data.lastname.toUpperCase();
+        firebase.database().ref('forms/' + username).set({
+            firstname: data.firstname + ' ',
+            lastname: data.lastname,
+            gender: data.gender,
+            email: data.email,
+            phonenum: data.phonenum,
+            skills: data.skills,
+            description: data.description
+        }, (err) => {
+            if(err) {
+                console.log("Form Data submission failed!");
+                alert("Form Data submission failed! Resubmit the form");
+            }
+            if(previousSubmit !== submitted) {
+                console.log('Edited Data saved successfully');
+                alert('You have successfully edited!');
+            }
+            else {
+                console.log('Data saved successfully');
+                alert('You have successfully saved!');
+            }
+
+        })
     };
 
-    const createAndUpdateForm =(firstname, lastname, gender, email, phonenum, skills, description ) => {
-        var formData = {
-            firstname,
-            lastname,
-            gender,
-            email,
-            phonenum,
-            skills,
-            description
-        };
-        
-        var newFormDataKey = firebase.database().ref().child('posts').push().key;
+    const { isValid, isDirty } = formState;
+    const inputValues = watch(); 
 
-        var updates = {};
-        updates['/forms/' + newFormDataKey] = formData;
-
-        return firebase.database().ref().update(updates, function(error) {
-            if (error) {
-                console.log("The post of Form Data failed!");
-            } else {
-                console.log("Data Saved Successfully");
-            }
-        });
-    }
+    const canSubmit = isValid && isDirty && !isEqual(inputValues, submitted);
+    console.log(canSubmit, isValid, isDirty);
 
     return (
         <div className="container-position">
@@ -137,7 +148,7 @@ function FormFirebase () {
                     <textarea name="description" className="input form-control" rows="4" ref={register} placeholder="Write your description here!"/>
                 </FormGroup>
                 
-                <button className="button mb-0">Submit</button>
+                <button type="submit" className="button mb-0" disabled={!canSubmit}>Submit</button>
             </form>
         </div>
     );
