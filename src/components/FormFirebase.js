@@ -12,10 +12,9 @@ function FormFirebase () {
     });
     const onSubmit = (data) => {
         // post operation of form data
-        var previousSubmit = submitted;
         setSubmitted(data);
         // user with same firstname and lastname can edit his form field, changes in spelling or spacing may not the data for same
-        var username = data.firstname.toUpperCase() + ' ' + data.lastname.toUpperCase();
+        var username = (data.firstname.toLowerCase() + data.lastname.toLowerCase()).replace(/ /g,'');
         firebase.database().ref('forms/' + username).set({
             firstname: data.firstname + ' ',
             lastname: data.lastname,
@@ -29,10 +28,6 @@ function FormFirebase () {
                 console.log("Form Data submission failed!");
                 alert("Form Data submission failed! Resubmit the form");
             }
-            if(previousSubmit !== submitted) {
-                console.log('Edited Data saved successfully');
-                alert('You have successfully edited!');
-            }
             else {
                 console.log('Data saved successfully');
                 alert('You have successfully saved!');
@@ -45,7 +40,6 @@ function FormFirebase () {
     const inputValues = watch(); 
 
     const canSubmit = isValid && isDirty && !isEqual(inputValues, submitted);
-    console.log(canSubmit, isValid, isDirty);
 
     return (
         <div className="container-position">
