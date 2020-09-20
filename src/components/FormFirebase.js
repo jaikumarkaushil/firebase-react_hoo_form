@@ -6,14 +6,14 @@ import { isEqual } from 'lodash';
 
 
 function FormFirebase () {
-    const [submitted, setSubmitted] = useState();
+    // below will keep track the submitted data
+    const [submitted, setSubmitted] = useState(); 
     const { register, handleSubmit, errors, watch, formState } = useForm({
         mode: 'onChange'
     });
     const onSubmit = (data) => {
-        // post operation of form data
         setSubmitted(data);
-        // user with same firstname and lastname can edit his form field, changes in spelling or spacing may not the data for same
+        // user with same firstname and lastname can edit his form field, changes in spelling may not the edit data to his form, rather create another instance
         var username = (data.firstname.toLowerCase() + data.lastname.toLowerCase()).replace(/ /g,'');
         firebase.database().ref('forms/' + username).set({
             firstname: data.firstname + ' ',
@@ -32,13 +32,13 @@ function FormFirebase () {
                 console.log('Data saved successfully');
                 alert('You have successfully saved!');
             }
-
         })
     };
-
+    // with isValid and isDirty, we can track the changes in form field
     const { isValid, isDirty } = formState;
     const inputValues = watch(); 
 
+    //canSubmit will work only when user wants to edit the field
     const canSubmit = isValid && isDirty && !isEqual(inputValues, submitted);
 
     return (
@@ -120,12 +120,10 @@ function FormFirebase () {
                         ref={register({
                         required: "Required",
                         pattern: {
-                            // value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                             value: /^[0-9]+$/,
                             message: "Invalid! Only Number can be entered"
                         },
                         maxLength: 11, 
-                    
                         })}
                     />
                     {errors.phonenum && errors.phonenum.message}
@@ -142,172 +140,10 @@ function FormFirebase () {
                     <textarea name="description" className="input form-control" rows="4" ref={register} placeholder="Write your description here!"/>
                 </FormGroup>
                 
-                <button type="submit" className="button mb-0" disabled={!canSubmit}>Submit</button>
+                <button type="submit" className="button mb-0" disabled={!canSubmit}>Submit</button> {/*disabled when user submits the edit, will disable when user changes the field values*/}
             </form>
         </div>
     );
 }
 
 export default FormFirebase;
-
-
-// export default class FormFirebase extends Component {
-//     constructor(props) {
-//         super(props);
-
-//         this.input = React.forwardRef();
-//     }
-//     render() {
-//         const errors = this.props.validate;
-//         const { username, password, email } = this.props;
-//         return (
-//             <div className="container-position-auth">
-//                 <h1 className="mt-5 mb-2">Let's get started</h1>
-//                 <h5 className="my-4 light-text-color"> Create your free account </h5>
-//                 <a href="/home" className="btn btn-social btn-google">
-//                     <span className="fa fa-google"></span>
-//                     Sign up with Google
-//                 </a>
-//                 <p className="mt-2 light-text-color" >Or sign up with email</p>
-//                 <Form onSubmit={this.props.handleSubmit}>   {/*when the submit button will be clicked, it will be handled by the this.handleSubmit javascript object*/}
-//                     <FormGroup row>
-//                         <Label htmlFor="username" ref={this.input}></Label>
-//                         <Col>
-//                             <Input className="input" type="text" id="username" name="username" placeholder="User Name" value={username} valid={errors.username === ''} invalid={errors.username !== ''} onBlur={this.props.handleBlur('username')} onChange={this.props.handleInputChange} /> {/*this.handleInputChange will handle the any change or modification when we input something in the field */}
-//                             <FormFeedback>{errors.username}</FormFeedback>    
-//                         </Col>
-//                     </FormGroup>
-//                     <FormGroup row>
-//                         <Label htmlFor="email" ref={this.input}></Label>
-//                         <Col>
-//                             <Input className="input" type="email" id="email" name="email" placeholder="Email" value={email} valid={errors.email === ''} invalid={errors.email !== ''} onBlur={this.props.handleBlur('email')} onChange={this.props.handleInputChange} />
-//                             <FormFeedback>{errors.email}</FormFeedback>
-//                         </Col>
-//                     </FormGroup>
-//                     <FormGroup row>
-//                         <Label htmlFor="password" ref={this.input}></Label>
-//                         <Col>
-//                             <Input className="input" type="text" id="password" name="password" placeholder="Password" value={password} valid={errors.username === ''} invalid={errors.username !== ''} onBlur={this.props.handleBlur('username')} onChange={this.props.handleInputChange} /> {/*this.handleInputChange will handle the any change or modification when we input something in the field */}
-//                             <FormFeedback>{errors.username}</FormFeedback>    
-//                         </Col>
-//                     </FormGroup>
-//                     <FormGroup row>
-//                         <Col className="text-center py-3">
-//                             <button type="submit" className="button">
-//                                 Submit
-//                             </button>
-//                         </Col>
-//                     </FormGroup>
-//                 </Form>
-                
-//                 <p className="light-text-color">By signing up you agree to our <strong>Terms of Service</strong></p>
-//                 <p className="light-text-color">Already have an account? <Link to="/login" className="link"><strong>Log In</strong></Link></p> 
-//                 <Link to="/home" className="link"><button className="button">Back to Home</button></Link>
-//       </div>
-//         )
-//     }
-// }
-
-
-
-// import React, { useState, useEffect } from "react";
-// import ReactDOM from "react-dom";
-// import { useForm } from "react-hook-form";
-
-// import Select from "react-select";
-
-
-// import "./index.css";
-
-// const options = [
-//   { value: "chocolate", label: "Chocolate" },
-//   { value: "strawberry", label: "Strawberry" },
-//   { value: "vanilla", label: "Vanilla" }
-// ];
-
-// const MyInput = ({ name, label, register }) => {
-//   return (
-//     <>
-//       <label htmlFor={name}>{label}</label>
-//       <input name={name} placeholder="Jane" ref={register} />
-//     </>
-//   );
-// };
-
-// function FormFirebase() {
-//   const { register, handleSubmit, setValue } = useForm();
-//   const onSubmit = data => {
-//     alert(JSON.stringify(data, null));
-//   };
-//   const [values, setReactSelect] = useState({
-//     selectedOption: []
-//   });
-
-//   const handleMultiChange = selectedOption => {
-//     setValue("reactSelect", selectedOption);
-//     setReactSelect({ selectedOption });
-//   };
-
-
-
-//   useEffect(() => {
-//     register({ name: "reactSelect" });
-//   }, [register]);
-
-//   return (
-//     <div className="App">
-//       <form onSubmit={handleSubmit(onSubmit)}>
-//         <div>
-//           <input
-//             style={{
-//               marginBottom: "20px"
-//             }}
-//             name="HelloWorld"
-//             inputRef={register}
-//             placeholder="Material UI - input"
-//             inputProps={{
-//               "aria-label": "Description"
-//             }}
-//           />
-//         </div>
-
-
-
-//         <div>
-//           <lable className="reactSelectLabel">React select</lable>
-//           <Select
-//             className="reactSelect"
-//             name="filters"
-//             placeholder="Filters"
-//             value={values.selectedOption}
-//             options={options}
-//             onChange={handleMultiChange}
-//             isMulti
-//           />
-//         </div>
-
-//         <div>
-//           <input name="firstName" type="text" placeholder="First Name" register={register} />
-//         </div>
-
-//         <div>
-//           <label htmlFor="lastName">Last Name</label>
-//           <input name="lastName" placeholder="Luo" ref={register} />
-//         </div>
-
-//         <div>
-//           <label htmlFor="email">Email</label>
-//           <input
-//             name="email"
-//             placeholder="bluebill1049@hotmail.com"
-//             type="email"
-//             ref={register}
-//           />
-//         </div>
-//         <button type="submit">Submit</button>
-//       </form>
-//     </div>
-//   );
-// }
-
-// export default FormFirebase;
