@@ -8,38 +8,79 @@ import { isEqual } from 'lodash';
 function FormFirebase () {
     // below will keep track the submitted data
     const [submitted, setSubmitted] = useState(); 
-    const { register, handleSubmit, errors, watch, formState } = useForm({
+    const { register, handleSubmit, errors, reset, watch, formState } = useForm({
         mode: 'onChange'
     });
-    const onSubmit = (data) => {
+    const onSubmit = (data, e) => {
+        
         setSubmitted(data);
         // user with same firstname and lastname can edit his form field, changes in spelling may not the edit data to his form, rather create another instance
         var username = (data.firstname.toLowerCase() + data.lastname.toLowerCase()).replace(/ /g,'');
-        firebase.database().ref('forms/' + username).set({
-            firstname: data.firstname + ' ',
-            lastname: data.lastname,
-            gender: data.gender,
-            email: data.email,
-            phonenum: data.phonenum,
-            skills: data.skills,
-            description: data.description
-        }, (err) => {
-            if(err) {
-                console.log("Form Data submission failed!");
-                alert("Form Data submission failed! Resubmit the form");
+        // query the database for existence of references in the database URL.
+        var queryRef = firebase.database().ref("forms");
+        queryRef.once("value", snap => {
+            // update the changed values if same username fills the form 
+            if (snap.child(username).exists()) {
+                if(data.editFormField) {
+                    firebase.database().ref('forms/' + username).update({
+                        firstname: data.firstname + ' ',
+                        lastname: data.lastname,
+                        gender: data.gender,
+                        email: data.email,
+                        phonenum: data.phonenum,
+                        skills: data.skills,
+                        description: data.description
+                    }, (err) => {
+                        if(err) {
+                            console.log("Form Data submission failed!");
+                            alert("Form Data submission failed! Resubmit the form");
+                        }
+                        
+                        else {
+                            console.log('Data edited successfully');
+                            alert('You have successfully edited!');
+                        }
+                    });
+                }
+                else {
+                    console.log("Editing will only be allowed, if the edit checkbox is selected!");
+                    alert("Editing not allowed! Please! check the edit checkbox.");
+                }
             }
+            // if the user didn't exists in the database then we will create the reference with username key
             else {
-                console.log('Data saved successfully');
-                alert('You have successfully saved!');
+                firebase.database().ref('forms/' + username).set({
+                    firstname: data.firstname + ' ',
+                    lastname: data.lastname,
+                    gender: data.gender,
+                    email: data.email,
+                    phonenum: data.phonenum,
+                    skills: data.skills,
+                    description: data.description
+                }, (err) => {
+                    if(err) {
+                        console.log("Form Data submission failed!");
+                        alert("Form Data submission failed! Resubmit the form");
+                    }
+                    else {
+                        console.log('Data saved successfully');
+                        alert('You have successfully saved!');
+                    }
+                });
             }
-        })
+        }, err => console.log(err));
+        data.editFormField = false;
+        
     };
     // with isValid and isDirty, we can track the changes in form field
-    const { isValid, isDirty } = formState;
-    const inputValues = watch(); 
+    const { isValid, isDirty, isSubmitted } = formState;
+    const inputValues = watch();    
 
-    //canSubmit will work only when user wants to edit the field
+    //canEditField will check whether the user already submitted or not if submitted then allow editing when edit checkbox is checked
+    const canEditField = isSubmitted === true ? isEqual(inputValues, submitted) === false ? true : false : true;
+    //canSubmit will validate the user enterer data
     const canSubmit = isValid && isDirty && !isEqual(inputValues, submitted);
+
 
     return (
         <div className="container-position">
@@ -47,7 +88,7 @@ function FormFirebase () {
             <h5 className="my-4 light-text-color"> Start with the your form! </h5>
             <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column align-items-center justify-content-center text-white" >
                 <FormGroup>
-                    <input name="firstname" type="text" className="input mb-3" ref={register({minLength: 3, maxLength: 15})} placeholder="First Name" />
+                    <input name="firstname" type="text" className="input mb-3" ref={register({minLength: 3, maxLength: 15})} placeholder="First Name" disabled={!canEditField}/>
                     {errors.firstname?.type === "maxLength" && "Firstname exceed maxLength 15"}
                     {errors.firstname?.type === "minLength" && "Firstname must have 2 letters"}
 
@@ -55,6 +96,7 @@ function FormFirebase () {
                         type="text" 
                         className="input mb-3" 
                         placeholder="Last Name"
+                        disabled={!canEditField}
                         ref={register({ 
                                 required: true, 
                                 minLength: 3, 
@@ -76,6 +118,7 @@ function FormFirebase () {
                             value="Male"
                             id="inlineRadio1"
                             ref={register}
+                            disabled={!canEditField}
                         />
                         <label className="form-check-label" htmlFor="inlineRadio1">
                             Male
@@ -89,6 +132,7 @@ function FormFirebase () {
                             value="Female"
                             id="inlineRadio2"
                             ref={register}
+                            disabled={!canEditField}
                         />
                         <label className="form-check-label" htmlFor="inlineRadio2">
                             Female
@@ -101,6 +145,7 @@ function FormFirebase () {
                         name="email"
                         type="text"
                         className="input mb-3"
+                        disabled={!canEditField}
                         ref={register({
                         required: "Required",
                         pattern: {
@@ -117,6 +162,7 @@ function FormFirebase () {
                         name="phonenum"
                         className="input mb-3"
                         type="tel"
+                        disabled={!canEditField}
                         ref={register({
                         required: "Required",
                         pattern: {
@@ -129,7 +175,7 @@ function FormFirebase () {
                     {errors.phonenum && errors.phonenum.message}
                 </FormGroup>
     
-                <select name="skills" ref={register({ required: true })} className="input mb-3">
+                <select name="skills" ref={register({ required: true })} disabled={!canEditField} className="input mb-3">
                     <option>Skills</option>
                     <option value="UI">UI</option>
                     <option value="UX">UX</option>
@@ -137,10 +183,32 @@ function FormFirebase () {
                     <option value="CSS">CSS</option>
                 </select>
                 <FormGroup>
-                    <textarea name="description" className="input form-control" rows="4" ref={register} placeholder="Write your description here!"/>
+                    <textarea name="description" className="input form-control" rows="4" ref={register} disabled={!canEditField} placeholder="Write your description here!"/>
                 </FormGroup>
                 
-                <button type="submit" className="button mb-0" disabled={!canSubmit}>Submit</button> {/*disabled when user submits the edit, will disable when user changes the field values*/}
+                <button type="submit" className="button" disabled={!canSubmit}>Submit</button> {/*disabled when user submits the form, will enable when user click the checkbox*/}
+                {/*submit button will be disabled with same data as entered before, will enable only if edit checkbox is checked */}
+                <FormGroup className="input">
+                    <input
+                    type="checkbox"
+                    placeholder="Edit Form"
+                    name="editFormField"
+                    id="editForm"
+                    ref={register}
+                    disabled={!isSubmitted}
+                    />
+                    <label htmlFor="editForm" className="ml-2"> Edit the form by clicking the checkbox! </label>
+                </FormGroup>
+                {/*user can reset the form by click the "Reset Form Button" */}
+                <FormGroup>
+                    <input
+                        className="button my-0"
+                        type="button"
+                        onClick={() => reset()}
+                        value="Reset Form"
+                        disabled={!canSubmit}
+                    />
+                </FormGroup>
             </form>
         </div>
     );
