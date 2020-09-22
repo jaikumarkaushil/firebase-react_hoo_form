@@ -21,6 +21,7 @@ function FormFirebase () {
         queryRef.once("value", snap => {
             // update the changed values if same username fills the form 
             if (snap.child(username).exists()) {
+                console.log(data.editFormField);
                 if(data.editFormField) {
                     firebase.database().ref('forms/' + username).update({
                         firstname: data.firstname + ' ',
@@ -43,8 +44,8 @@ function FormFirebase () {
                     });
                 }
                 else {
-                    console.log("Editing will only be allowed, if the edit checkbox is selected!");
-                    alert("Editing not allowed! Please! check the edit checkbox.");
+                    console.log("User Already Exists! Editing will only be allowed, if the edit checkbox is selected!");
+                    alert("Editing not allowed! User Already Exists. Please! check the edit checkbox for editing.");
                 }
             }
             // if the user didn't exists in the database then we will create the reference with username key
@@ -69,7 +70,7 @@ function FormFirebase () {
                 });
             }
         }, err => console.log(err));
-        data.editFormField = false;
+        
         
     };
     // with isValid and isDirty, we can track the changes in form field
@@ -200,15 +201,12 @@ function FormFirebase () {
                     <label htmlFor="editForm" className="ml-2"> Edit the form by clicking the checkbox! </label>
                 </FormGroup>
                 {/*user can reset the form by click the "Reset Form Button" */}
-                <FormGroup>
-                    <input
-                        className="button my-0"
-                        type="button"
-                        onClick={() => reset()}
-                        value="Reset Form"
-                        disabled={!canSubmit}
-                    />
-                </FormGroup>
+                <input
+                    className="button my-0"
+                    type="button"
+                    onClick={() => reset()}
+                    value="Reset Form"
+                />
             </form>
         </div>
     );
