@@ -3,6 +3,12 @@ import { useForm } from 'react-hook-form';
 import { FormGroup } from 'reactstrap';
 import firebase from '../firebase/firebase';
 import { isEqual } from 'lodash';
+import {baseUrl} from '../shared/baseUrl';
+import {databaseUrl} from '../shared/databaseUrl';
+
+// export const addPost = () => {
+//     event: 
+// }
 
 
 function FormFirebase () {
@@ -11,65 +17,105 @@ function FormFirebase () {
     const { register, handleSubmit, errors, reset, watch, formState } = useForm({
         mode: 'onChange'
     });
+
     const onSubmit = (data, e) => {
-        
+
+        data.date = new Date().toISOString();
         setSubmitted(data);
-        // user with same firstname and lastname can edit his form field, changes in spelling may not the edit data to his form, rather create another instance
-        var username = (data.firstname.toLowerCase() + data.lastname.toLowerCase()).replace(/ /g,'');
-        // query the database for existence of references in the database URL.
-        var queryRef = firebase.database().ref("forms");
-        queryRef.once("value", snap => {
-            // update the changed values if same username fills the form 
-            if (snap.child(username).exists()) {
-                console.log(data.editFormField);
-                if(data.editFormField) {
-                    firebase.database().ref('forms/' + username).update({
-                        firstname: data.firstname + ' ',
-                        lastname: data.lastname,
-                        gender: data.gender,
-                        email: data.email,
-                        phonenum: data.phonenum,
-                        skills: data.skills,
-                        description: data.description
-                    }, (err) => {
-                        if(err) {
-                            console.log("Form Data submission failed!");
-                            alert("Form Data submission failed! Resubmit the form");
-                        }
-                        
-                        else {
-                            console.log('Data edited successfully');
-                            alert('You have successfully edited!');
-                        }
-                    });
-                }
-                else {
-                    console.log("User Already Exists! Editing will only be allowed, if the edit checkbox is selected!");
-                    alert("Editing not allowed! User Already Exists. Please! check the edit checkbox for editing.");
-                }
+        // curl -X PUT -d "{
+        //     "alanisawesome": {
+        //       "name": "Alan Turing",
+        //       "birthday": "June 23, 1912"
+        //     }
+        //   }" baseUrl + "forms.json"
+
+        fetch(databaseUrl + "forms", {
+            
+        //   body: JSON.stringify(newComment),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Access-Control-Allow-Methods': 'GET, PUT,PATCH,DELETE',
+            'Access-Control-Allow-Origin': '*'
+          },
+          method: "GET",
+        })
+            
+        .then(response => {
+            if (response.ok) {
+                return response;
             }
-            // if the user didn't exists in the database then we will create the reference with username key
             else {
-                firebase.database().ref('forms/' + username).set({
-                    firstname: data.firstname + ' ',
-                    lastname: data.lastname,
-                    gender: data.gender,
-                    email: data.email,
-                    phonenum: data.phonenum,
-                    skills: data.skills,
-                    description: data.description
-                }, (err) => {
-                    if(err) {
-                        console.log("Form Data submission failed!");
-                        alert("Form Data submission failed! Resubmit the form");
-                    }
-                    else {
-                        console.log('Data saved successfully');
-                        alert('You have successfully saved!');
-                    }
-                });
+                var error = new Error('Error ' + response.status + ': ' + response.statusText);
+                error.response = response;
+                throw error;
             }
-        }, err => console.log(err));
+
+        }, error => {
+            var err = new Error(error.message);
+            throw err;
+        })
+        .then((resp) => {
+            console.log(resp);
+        }
+            
+        )
+
+        // user with same firstname and lastname can edit his form field, changes in spelling may not the edit data to his form, rather create another instance
+        // var username = (data.firstname.toLowerCase() + data.lastname.toLowerCase()).replace(/ /g,'');
+        // query the database for existence of references in the database URL.
+        // var queryRef = firebase.database().ref("forms");
+    //     queryRef.once("value", snap => {
+    //         // update the changed values if same username fills the form 
+    //         if (snap.child(username).exists()) {
+    //             console.log(data.editFormField);
+    //             if(data.editFormField) {
+    //                 firebase.database().ref('forms/' + username).update({
+    //                     firstname: data.firstname + ' ',
+    //                     lastname: data.lastname,
+    //                     gender: data.gender,
+    //                     email: data.email,
+    //                     phonenum: data.phonenum,
+    //                     skills: data.skills,
+    //                     description: data.description
+    //                 }, (err) => {
+    //                     if(err) {
+    //                         console.log("Form Data submission failed!");
+    //                         alert("Form Data submission failed! Resubmit the form");
+    //                     }
+                        
+    //                     else {
+    //                         console.log('Data edited successfully');
+    //                         alert('You have successfully edited!');
+    //                     }
+    //                 });
+    //             }
+    //             else {
+    //                 console.log("User Already Exists! Editing will only be allowed, if the edit checkbox is selected!");
+    //                 alert("Editing not allowed! User Already Exists. Please! check the edit checkbox for editing.");
+    //             }
+    //         }
+    //         // if the user didn't exists in the database then we will create the reference with username key
+    //         else {
+    //             firebase.database().ref('forms/' + username).set({
+    //                 firstname: data.firstname + ' ',
+    //                 lastname: data.lastname,
+    //                 gender: data.gender,
+    //                 email: data.email,
+    //                 phonenum: data.phonenum,
+    //                 skills: data.skills,
+    //                 description: data.description
+    //             }, (err) => {
+    //                 if(err) {
+    //                     console.log("Form Data submission failed!");
+    //                     alert("Form Data submission failed! Resubmit the form");
+    //                 }
+    //                 else {
+    //                     console.log('Data saved successfully');
+    //                     alert('You have successfully saved!');
+    //                 }
+    //             });
+    //         }
+    //     }, err => console.log(err));
         
         
     };
