@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import { baseUrl } from '../shared/baseUrl';
 
 export const fetchCustomerData = async () => {
@@ -8,6 +6,18 @@ export const fetchCustomerData = async () => {
         let customers = await response.json();
         
         return customers;
+
+    } catch(error) {
+        throw error;
+    }
+}
+
+export const fetchTransactionData = async () => {
+    try {
+        let response = await fetch(baseUrl + 'transactions');
+        let transactions = await response.json();
+        
+        return transactions;
 
     } catch(error) {
         throw error;
