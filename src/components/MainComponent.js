@@ -1,6 +1,5 @@
 /* eslint-disable import/first */
 import React, { useState, useEffect, Suspense } from 'react';
-const FormFirebase = React.lazy(() => import('./FormFirebase'));
 const Customer = React.lazy(() => import('./Customer'));
 const Home = React.lazy(() => import('./HomeComponent'));
 import {Loading } from './LoadingComponent';
@@ -49,7 +48,6 @@ const Main = (props) => {
           <Suspense fallback={<Loading/>}>
             <Switch location={props.location}>
               <Route path="/home" component={() => <Home customer={customer} transaction={transaction} refreshData={refreshData} setRefreshData={setRefreshData}  customers={customers} transactions={transactions} location={props.location}/>} />
-              <Route exact path="/form" component={() => <FormFirebase />}/>
               <Route path="/customer/:customerName" component={customerWithName}/>
               <Redirect to="/home"/>
             </Switch>

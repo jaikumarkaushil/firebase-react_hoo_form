@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { FormGroup, Col } from 'reactstrap';
 import { baseUrl } from '../shared/baseUrl';
 import { Redirect } from 'react-router-dom';
-import { uniqueId } from 'lodash';
 
 
 function Transfer (props) {
