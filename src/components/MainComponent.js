@@ -1,5 +1,5 @@
 /* eslint-disable import/first */
-import React, { useState, useEffect, Suspense, Component } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 const FormFirebase = React.lazy(() => import('./FormFirebase'));
 const Customer = React.lazy(() => import('./Customer'));
 const Home = React.lazy(() => import('./HomeComponent'));
@@ -9,31 +9,11 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { fetchCustomerData } from '../shared/api';
 import { fetchTransactionData } from '../shared/api';
 
-// export class MainComponent extends Component {
-//   constructor(props){
-
-//     this.state = {
-//       customers: [],
-//       transaction: []
-//     }
-//   }
-//   componentDidUpdate
-//   render() {
-//     return (
-//       <div>
-        
-//       </div>
-//     )
-//   }
-// }
-// export default MainComponent
-
-
-
 const Main = (props) => {
   const [customers, setCustomer] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [refreshData, setRefreshData] = useState(false)
+  // to refresh the data when updated data is fetched about customers and transactions happened
+  const [refreshData, setRefreshData] = useState(false);
   
   async function customer() {
     try{
@@ -53,7 +33,10 @@ const Main = (props) => {
         console.log(error)
     }
   };
-  console.log(props.location)
+  useEffect(() => {
+    customer();
+    transaction();
+  },[])
   const customerWithName = ({match}) => {
     return(
       <Customer location={props.location} setRefreshData={setRefreshData} customers={customers} customer={customers.filter((customer) => customer.name === match.params.customerName)[0]} />

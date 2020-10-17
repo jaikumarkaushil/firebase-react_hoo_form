@@ -14,17 +14,22 @@ function Transfer (props) {
     const [postTransaction, setPostTransaction] = useState(false);
 
     const { customers, customer, setRefreshData } =  props;
+
+    setRefreshData(putTransferFrom && putTransferTo && postTransaction);
+
     const { register, handleSubmit, errors } = useForm();
     const onSubmit = (data) => {
-        data.debitAccount = customer.accountNumber;
+        
         let username = data.firstname + ' ' + data.lastname;
+        // Here, filtering the user from the database with filled the one in form data
         const customerList = customers.filter((customer) => {
-            if(username || data.creditAccount || data.creditCustomer) {
+            if(username || data.creditAccount || data.creditCustomer !== "Other Customers") {
                 return customer.name === username || customer.accountNumber === Number(data.creditAccount) || customer.name === data.creditCustomer
             }
-        })
+        });
         setValidCustomer(customerList.length);
 
+        
         var balanceState;
         if(customer.balance === 0){
             balanceState = 0;
@@ -37,7 +42,7 @@ function Transfer (props) {
         else if(customer.balance >= Number(data.transferAmount)) {
             balanceState = "Sufficient";
         }
-    
+        //here, we will verify the customer & balance status to make the transaction and notify errors, if any
         if(customerList.length === 1 && balanceState === "Sufficient") {
             const transferToData = {
                 balance: customerList[0].balance + Number(data.transferAmount),
@@ -47,7 +52,7 @@ function Transfer (props) {
                         balance: customer.balance - Number(data.transferAmount),
                         debit: Number(data.transferAmount)
                     }
-            
+            // function for updating the customer data
             function transfer(url, transfer){
                 fetch(url, {
                     method: 'PUT',
@@ -103,13 +108,6 @@ function Transfer (props) {
         }
     }
     
-    const linkTarget = {
-        pathname: "/home",
-        key: uniqueId(),
-        state: {
-            applied: true
-        }        
-    };
     return (
         <section id="transfer" className="d-none d-md-flex flex-column justify-content-center align-items-center">
             <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column justify-content-center align-items-center text-white" >
@@ -169,7 +167,9 @@ function Transfer (props) {
                 </select>
                 <FormGroup className="my-5">
                     <input name="transferAmount" className="input-full mb-3" ref={register({required: true})} placeholder="Amount"/>
+                    {errors.transferAmount?.type === "required" && "Required Field"}
                 </FormGroup>
+                
                 <FormGroup >
                     <input name="description" className="input-full mb-3" ref={register} placeholder="Add Transaction Note"/>
                 </FormGroup>
@@ -179,9 +179,8 @@ function Transfer (props) {
 
                 <button type="submit" className="button mt-4 mb-0" >Transfer</button>
 
-                {/* Redirect to homepage after successful transaction and users data */}
-                
-                {putTransferFrom && putTransferTo && postTransaction ? <Redirect refresh={true} to={linkTarget} /> : null}
+                {/* Redirect to homepage after users data updation and successful transaction */}
+                {putTransferFrom && putTransferTo && postTransaction ? <Redirect to="/home" /> : null}
             </form>
         </section>
     );
